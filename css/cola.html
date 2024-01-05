@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Estilo del contenedor del mensaje */
+        .mensaje-flotante {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0; /* Cambiado a 0 para activar la transición */
+            transition: opacity 1s ease; /* Transición de 1 segundo para el efecto de desvanecimiento */
+        }
+
+        /* Estilo del fondo oscuro para el modal */
+        .fondo-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 900; /* Un número inferior al z-index del mensaje para que esté detrás */
+        }
+    </style>
+</head>
+<body>
+
+<!-- Botón para mostrar el mensaje -->
+<button onclick="mostrarMensaje()">Mostrar Mensaje</button>
+
+<!-- Contenedor del mensaje y fondo modal -->
+<div class="fondo-modal" id="fondoModal"></div>
+<div class="mensaje-flotante" id="mensajeFlotante">
+    <p>Este es tu mensaje flotante.</p>
+    <button onclick="cerrarMensaje()">Cerrar</button>
+</div>
+
+<script>
+    function mostrarMensaje() {
+        // Mostrar el mensaje y el fondo modal
+        document.getElementById('mensajeFlotante').style.display = 'block';
+        document.getElementById('fondoModal').style.display = 'block';
+
+        // Fuerza un reflow antes de cambiar la opacidad para activar la transición
+        document.getElementById('mensajeFlotante').offsetHeight;
+
+        // Establecer un temporizador para cambiar la opacidad después de 3 segundos
+        setTimeout(function() {
+            document.getElementById('mensajeFlotante').style.opacity = '1';
+        }, 0);
+
+        // Establecer otro temporizador para ocultar el mensaje después de 6 segundos
+        setTimeout(function() {
+            cerrarMensaje();
+        }, 1000);
+    }
+
+    function cerrarMensaje() {
+        // Ocultar el mensaje y el fondo modal
+        document.getElementById('mensajeFlotante').style.opacity = '0';
+        document.getElementById('fondoModal').style.display = 'none';
+
+        // Después de que termine la transición, ocultar completamente el mensaje
+        setTimeout(function() {
+            document.getElementById('mensajeFlotante').style.display = 'none';
+        }, 1000); // 1000 milisegundos (1 segundo) - coincide con la duración de la transición
+    }
+</script>
+
+</body>
+</html>
+

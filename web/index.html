@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olympus GYM</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-olympus">
+            <label class="label-olympus"for="Olympus">OLYMPUS</label>
+        </div>
+        <img class="header-logo" src="../img/logo.png" alt="Logotipo">
+        <div class="header-gym">
+            <label for="gym">GYM</label>
+        </div>
+    </header>
+    <div class="formularios">
+        <div class="registrarCliente">
+            <div class="center">
+                <div class="tituloRegistrar">
+                    <h1><b>REGISTRAR CLIENTES</b></h1>
+                </div>
+                <br>
+                <form id="saveCliente">
+                    <div class="inputbox">
+                        <input id="nombre" type="text" name="nombre" required>
+                        <span>Nombre Cliente</span>
+                    </div>
+                    <br>
+                    <div class="inputbox">
+                        <button type="submit" id="saveClienteButton">Registrar Cliente</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <br>
+        <div class="buscarCliente">
+            <div class="center">
+                <div>
+                    <h1><b>BUSCAR CLIENTES</b></h1>
+                </div>
+                <!--Quitar despues-->
+                <br>
+                <form id="buscarNumeroForm">
+                    <div class="inputbox">
+                        <input type="number" id="buscarNumero" name="numeroCliente" required>
+                        <span>Numero Cliente</span>
+                    </div>
+                    <br>
+                    <div class="inputbox">
+                        <button type="submit" id="buscarNumeroButton">Buscar Numero</button>
+                    </div>
+                </form>
+                <!--Quitar despues-->
+                <br>
+                <form id="buscarNombreForm">
+                    <div class="inputbox">
+                        <input id="buscarNombre" name="nombre" required>
+                        <span>Nombre Cliente</span>
+                    </div>
+                    <br>
+                    <div class="inputbox">
+                        <button type="submit" id="buscarNombreButton">Buscar Nombre</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Contenedor del mensaje y fondo modal -->
+    <div class="fondo-modal" id="fondoModal"></div>
+    <div class="messageContainer" id="messageContainer">
+        <button onclick="cerrarMensaje()">Cerrar</button>
+    </div>
+    <div class="divisionSolicitudes">
+        <!-- TABLA DEL CLIENTE BUSCADO -->
+        <table class="tablaSolicitudes" id="clientBuscadoTable">
+            <thead>
+                <tr>
+                    <th>Numero Cliente</th>
+                    <th>Nombre</th>
+                    <th>Fecha Ingreso</th>
+                    <th>Fecha Pago</th>
+                    <th>Estatus</th>
+                    <th>Pagos</th>
+                    <th>Borrar</th>
+                </tr>
+            </thead>
+            <tbody id="clientBuscadoTableBody"></tbody>
+        </table>
+    </div>
+    <div class="divisionClientes">
+        <!-- TABLA DE CLIENTES -->
+        <table class="tablaClientes" id="clientTable">
+            <thead>
+                <tr>
+                    <th>Numero Cliente</th>
+                    <th>Nombre</th>
+                    <th>Fecha Ingreso</th>
+                    <th>Fecha Pago</th>
+                    <th>Estatus</th>
+                    <th>Pagos</th>
+                    <th>Borrar</th>
+                </tr>
+            </thead>
+            <tbody id="clientTableBody">
+                <tr></tr>
+            </tbody>
+        </table>
+    </div>
+    <script src="../routes/clientes.js"></script>
+    <script src="../app.js"></script>
+    <script>
+        let timeoutId;
+
+        function mostrarMensaje() {
+            const messageContainer = document.getElementById('messageContainer');
+            const fondoModal = document.getElementById('fondoModal');
+
+            // Configurar la opacidad y mostrar el mensaje
+            messageContainer.style.opacity = '0';
+            messageContainer.style.display = 'block';
+
+            setTimeout(function (){
+                messageContainer.style.opacity = '1';
+            })
+
+            fondoModal.style.display = 'block';
+
+            // Limpiar cualquier temporizador pendiente
+            clearTimeout(timeoutId);
+
+            // Establecer un temporizador para cerrar el mensaje después de 6 segundos
+            timeoutId = setTimeout(function () {
+                cerrarMensaje();
+            }, 1000);
+        }
+
+        function cerrarMensaje() {
+            const messageContainer = document.getElementById('messageContainer');
+            const fondoModal = document.getElementById('fondoModal');
+
+            // Configurar la opacidad y ocultar el mensaje
+            messageContainer.style.opacity = '0';
+
+            // Después de que termine la transición, ocultar completamente el mensaje
+            setTimeout(function () {
+                messageContainer.style.display = 'none';
+                fondoModal.style.display = 'none';
+            }, 1000);
+        }
+
+        clientBuscadoTableBody.innerHTML = "---";
+        // Función para actualizar la tabla de clientes
+        function updateClientTable(data, tableBody) {
+            const clientTableRows = data.map(client => `
+                <tr class="${client.status !== 'Sin Adeudo' ? 'botonPagarHabilitado' : ''}">
+                    <td>${client.numeroCliente}</td>
+                    <td>${client.nombre}</td>
+                    <td>${new Date(client.fechaIngreso).toLocaleDateString()}</td>
+                    <td>${new Date(client.fechaPago).toLocaleDateString()}</td>
+                    <td>${client.status}</td>
+                    <td><button class="botonPagar" onclick="activarPagar(this)" ${client.status === 'Sin Adeudo' ? 'disabled' : ''}>Pagar</button> &nbsp <button class="botonPagarConfirmar" id="pagar" onclick="pagar(${client.numeroCliente}, '${client.nombre}')" disabled><img src="../img/pagar.png" width="50" heigth="50"></button>&nbsp&nbsp&nbsp</td>
+                    
+                    <td><button class="botonBorrar" onclick="activarBorrar(this)">Borrar</button> &nbsp <button class="botonBorrarConfirmar" id="borrar" onclick="borrar(${client.numeroCliente}, '${client.nombre}')" disabled><img src="../img/borrar.png" width="50", heigth="50"></button></td>
+                </tr>
+            `);
+
+            // Actualizar el contenedor específico con las filas creadas
+            tableBody.innerHTML = clientTableRows.join('');
+        } 
+
+        //Activar boton borrar
+        function activarBorrar(botonBorrar){
+            const botonConfirmar = botonBorrar.nextElementSibling; // Obtener el siguiente hermano (el botón de confirmar)
+            botonConfirmar.disabled = !botonConfirmar.disabled;
+        }
+        //Activar boton pagar
+        function activarPagar(botonPagar){
+            const botonConfirmar = botonPagar.nextElementSibling; // Obtener el siguiente hermano (el botón de confirmar)
+            botonConfirmar.disabled = !botonConfirmar.disabled;
+            // Agregar o quitar la clase según el estado del botón
+            const row = botonPagar.closest('tr');
+            if (botonPagar.disabled) {
+                row.classList.remove('botonPagarHabilitado');
+            } else {
+                row.classList.add('botonPagarHabilitado');
+            }
+        }
+
+        // Realizar solicitud GET al servidor al cargar la página
+        function fetchClientes() {
+                fetch('http://localhost:3001/clientes')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Respuesta del servidor: ', data);
+
+                        // Actualizar contenido HTML con la lista de clientes
+                        if (data.success) {
+                            updateClientTable(data.data, clientTableBody);
+                        } else {
+                            console.error('Error al obtener la lista de clientes: ', data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error', error);
+                    });
+            }
+
+        // Función para borrar un registro
+        function borrar(numeroCliente, nombre) {
+            // Hacer solicitud al servidor para borrar
+            fetch(`http://localhost:3001/clientes/borrar/${numeroCliente}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Respuesta del servidor: ', data);
+                // Actualizar la tabla de clientes después de borrar el registro
+                fetchClientes();
+                clientBuscadoTableBody.innerHTML = "---";
+                // Mostrar un texto de éxito
+                messageContainer.innerHTML = '<p style="color: red;">Cliente Borrado.</p>';
+                mostrarMensaje();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(`Error al borrar cliente ${numeroCliente} - ${nombre}`);
+            });
+        }
+
+
+        // Función para el botón de pago
+        function pagar(numeroCliente, nombre) {
+            //Hacer solicitud al server para actualizar
+            fetch(`http://localhost:3001/clientes/pagar/${numeroCliente}`,{
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+            })
+            .then(response =>{
+                if(!response.ok) {
+                    throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data =>{
+                console.log('Respues del servidor: ', data);
+                //Actualizar la tabla de clientes despues de realizar el pago
+                fetchClientes();
+                updateClientTable([data.cliente], clientBuscadoTableBody);
+                //Mostrar un texto de éxito
+                messageContainer.innerHTML = '<p style="color: green;">Pago Actualizado.</p>';
+                mostrarMensaje();
+            })
+            .catch(error =>{
+                console.error('Error:', error);
+                alert(`Error al realizar el pago para cliente ${numeroCliente} - ${nombre}`);
+            });
+        }
+    
+        document.addEventListener('DOMContentLoaded', function () {
+            const clientTableBody = document.getElementById('clientTableBody');
+            const messageContainer = document.getElementById('messageContainer');
+            const saveClienteButton = document.getElementById('saveClienteButton');
+
+            fetchClientes(); // Llamar a la función al cargar la página
+
+            document.getElementById('buscarNombreForm').addEventListener('submit', function (event){
+                event.preventDefault();
+
+                const nombreCliente = document.getElementById('buscarNombre').value;
+
+                //Realizar la solicitud GET al servidor para bucar por nombre de cliente
+                fetch(`http://localhost:3001/clientes/buscarNombre/${nombreCliente}`)
+                    .then(response => {
+                        if(!response.ok) {
+                            messageContainer.innerHTML = '<p style="color: red;">Cliente NO Encontrado.</p>';
+                            mostrarMensaje();
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Respuesta del servidor: ', data);
+
+                        //Actualizar contenido HTML con el cliente encontrado
+                        if(data.success) {
+                            updateClientTable([data.data], clientBuscadoTableBody);
+                            messageContainer.innerHTML = '<p style="color: green;">Cliente Encontrado.</p>';
+                            mostrarMensaje();
+                        } else {
+                            console.error('Error al obtener el cliente: ', data.message);
+                        }
+                    })
+                    .catch(error =>{
+                        console.error('Error', error);
+                    })
+            });
+
+            document.getElementById('buscarNumeroForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const numeroCliente = document.getElementById('buscarNumero').value;
+
+                // Realizar la solicitud GET al servidor para buscar por número de cliente
+                fetch(`http://localhost:3001/clientes/buscar/${numeroCliente}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            //throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
+                            messageContainer.innerHTML = '<p style="color: red;">Cliente NO Encontrado.</p>';
+                            mostrarMensaje();
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Respuesta del servidor: ', data);
+
+                        // Actualizar contenido HTML con el cliente encontrado
+                        if (data.success) {
+                            updateClientTable([data.data], clientBuscadoTableBody); // Pasa un array con un solo cliente para que funcione con updateClientTable
+                            messageContainer.innerHTML = '<p style="color: green;">Cliente Encontrado.</p>';
+                            mostrarMensaje();
+                        } else {
+                            console.error('Error al obtener el cliente: ', data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error', error);
+                    });
+            });
+
+            document.getElementById('saveCliente').addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                //Desactiva el boton
+                saveClienteButton.disabled = true;
+
+                const nombre = document.getElementById('nombre').value;
+
+                // Realizar la solicitud POST al servidor
+                fetch('http://localhost:3001/clientes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ nombre }),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Respuesta del servidor:', data);
+                    // Actualizar el elemento de mensaje
+                    messageContainer.innerHTML = data.success ? `<p style="color: green;">${data.message}</p>` : `<p style="color: red;">${data.message}</p>`;
+                    mostrarMensaje();
+                    // Actualizar la tabla de clientes
+                    fetchClientes();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                        
+                    // Actualizar el elemento de mensaje en caso de error
+                    messageContainer.innerHTML = '<p style="color: red;">Cliente Duplicado.</p>';
+                    mostrarMensaje();
+                })
+                .finally(() => {
+                    // Volver a habilitar el botón después de que se complete la operación
+                    saveClienteButton.disabled = false;
+                });
+            });
+        });
+
+    </script>
+</body>
+</html>
